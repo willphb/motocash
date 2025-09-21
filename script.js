@@ -1,5 +1,5 @@
 /**
- * MotoCash App v3.3 (Correção Final de Referência de DOM)
+ * MotoCash App v3.4 (Correção Final de Inicialização)
  * Aplicação offline-first completa com planejamento, personalização e relatórios.
  */
 document.addEventListener('DOMContentLoaded', () => {
@@ -304,7 +304,36 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // --- INICIALIZAÇÃO ---
+        // --- FUNÇÕES DE INICIALIZAÇÃO ---
+        function cacheDOMElements() {
+            const toCamelCase = s => s.replace(/-./g, x => x[1].toUpperCase());
+            const ids = ['main-dashboard', 'add-day-btn', 'export-btn', 'import-file', 'settings-btn', 'day-modal', 'settings-modal', 'day-form', 'modal-title', 'record-id', 'history-list', 'history-view', 'reports-view', 'show-history-btn', 'show-reports-btn', 'report-period', 'profit-chart-container', 'income-pie-chart', 'income-legend', 'expense-pie-chart', 'expense-legend', 'monthly-goal', 'maintenance-form', 'maintenance-plan-list', 'date', 'time-start', 'time-end', 'km-initial', 'km-final', 'income-entries', 'add-income-btn', 'expense-entries', 'add-expense-btn', 'income-category-list', 'expense-category-list', 'theme-toggle-btn', 'fixed-expense-list', 'fixed-expense-form', 'export-pdf-btn', 'loader-overlay', 'loader-message'];
+            ids.forEach(id => { DOMElements[toCamelCase(id)] = document.getElementById(id); });
+        }
+
+        function bindEvents() {
+            DOMElements.addDayBtn.addEventListener('click', () => modals.open(DOMElements.dayModal));
+            DOMElements.settingsBtn.addEventListener('click', () => modals.open(DOMElements.settingsModal));
+            DOMElements.exportBtn.addEventListener('click', backup.exportData);
+            DOMElements.importFile.addEventListener('change', backup.importData);
+            DOMElements.dayModal.querySelector('.close-btn').addEventListener('click', () => modals.close(DOMElements.dayModal));
+            DOMElements.settingsModal.querySelector('.close-btn').addEventListener('click', () => modals.close(DOMElements.settingsModal));
+            window.addEventListener('click', e => { if (e.target === DOMElements.dayModal) modals.close(DOMElements.dayModal); if (e.target === DOMElements.settingsModal) modals.close(DOMElements.settingsModal); });
+            DOMElements.dayForm.addEventListener('submit', handlers.handleDayFormSubmit);
+            DOMElements.addIncomeBtn.addEventListener('click', () => modals.addDynamicEntry('income'));
+            DOMElements.addExpenseBtn.addEventListener('click', () => modals.addDynamicEntry('expense'));
+            DOMElements.historyList.addEventListener('click', handlers.handleHistoryClick);
+            DOMElements.settingsModal.addEventListener('click', handlers.handleSettingsClick);
+            DOMElements.monthlyGoal.addEventListener('change', handlers.handleSettingsSave);
+            DOMElements.maintenanceForm.addEventListener('submit', handlers.handleMaintenanceFormSubmit);
+            DOMElements.showHistoryBtn.addEventListener('click', () => handlers.switchView('history'));
+            DOMElements.showReportsBtn.addEventListener('click', () => handlers.switchView('reports'));
+            DOMElements.reportPeriodSelect.addEventListener('change', render.reports);
+            DOMElements.themeToggleBtn.addEventListener('click', handlers.handleThemeToggle);
+            DOMElements.fixedExpenseForm.addEventListener('submit', handlers.handleFixedExpenseSubmit);
+            DOMElements.exportPdfBtn.addEventListener('click', handlers.handlePdfExport);
+        }
+        
         function init() {
             cacheDOMElements();
             storage.loadState();
@@ -313,6 +342,6 @@ document.addEventListener('DOMContentLoaded', () => {
             render.all();
         }
 
-        init(); // Inicia a aplicação
+        init();
     })();
 });
