@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MotoCash - Seu Diário de Bordo Financeiro</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js" defer></script>
+    <script src="script.js" defer></script>
+</head>
+
+<body class="theme-dark">
+
+    <div id="loader-overlay" class="loader-overlay" style="display: none;">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <p id="loader-message">Carregando...</p>
+        </div>
+    </div>
+
+    <header>
+        <div class="container">
+            <h1>MotoCash</h1>
+            <div class="header-actions">
+                <button id="theme-toggle-btn" class="icon-btn" title="Alternar Tema" aria-label="Alternar Tema">☀️</button>
+                <button id="export-btn" class="secondary-btn-header" title="Exportar Backup">📥 Exportar</button>
+                <label for="import-file" class="secondary-btn-header" title="Importar Backup">📤 Importar</label>
+                <input type="file" id="import-file" accept=".json" style="display: none;">
+                <button id="settings-btn" class="icon-btn" title="Configurações" aria-label="Abrir Configurações">⚙️</button>
+                <button id="add-day-btn" class="primary-btn">➕ Registrar Dia</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="main-dashboard" class="dashboard">
+            </section>
+        
+        <div class="view-switcher">
+            <button id="show-history-btn" class="view-btn active" role="tab" aria-selected="true">Histórico</button>
+            <button id="show-reports-btn" class="view-btn" role="tab" aria-selected="false">Relatórios</button>
+        </div>
+
+        <div id="history-view" role="tabpanel">
+            <section class="history">
+                <h2>Histórico de Registros</h2>
+                <div id="history-list">
+                    <p style="text-align: center; color: var(--text-secondary);">Carregando registros...</p>
+                </div>
+            </section>
+        </div>
+
+        <div id="reports-view" style="display: none;" role="tabpanel">
+            <section class="reports">
+                <div class="report-header">
+                    <h2>Análise Financeira</h2>
+                    <button id="export-pdf-btn" class="secondary-btn-header" disabled>📄 Exportar PDF</button>
+                </div>
+                <div class="form-group"><label for="report-period">Selecione o Período:</label><select id="report-period"></select></div>
+                <div class="card"><h3>Lucro por Mês</h3><div id="profit-chart-container" class="chart-container"></div></div>
+                <div class="report-grid">
+                    <div class="card"><h3>Distribuição de Ganhos</h3><div class="pie-chart-wrapper"><div id="income-pie-chart" class="pie-chart"></div><div id="income-legend" class="legend"></div></div></div>
+                    <div class="card"><h3>Distribuição de Despesas</h3><div class="pie-chart-wrapper"><div id="expense-pie-chart" class="pie-chart"></div><div id="expense-legend" class="legend"></div></div></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="day-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" title="Fechar" aria-label="Fechar Janela">&times;</button>
+            <h2 id="modal-title">Registrar Dia</h2>
+            <form id="day-form" novalidate>
+                <input type="hidden" id="record-id">
+                <div class="form-grid">
+                    <div class="form-group"><label for="date">Data do Trabalho</label><input type="date" id="date" required></div>
+                    <fieldset><legend>Horas Trabalhadas (Opcional)</legend><div class="form-group-inline"><div class="form-group"><label for="time-start">Hora de Início</label><input type="time" id="time-start"></div><div class="form-group"><label for="time-end">Hora de Fim</label><input type="time" id="time-end"></div></div></fieldset>
+                </div>
+                <fieldset><legend>Quilometragem</legend><div class="form-group-inline"><div class="form-group"><label for="km-initial">KM Inicial</label><input type="number" id="km-initial" min="0" required></div><div class="form-group"><label for="km-final">KM Final</label><input type="number" id="km-final" min="0" required></div></div></fieldset>
+                <fieldset><legend>Ganhos do Dia</legend><div id="income-entries"></div><button type="button" id="add-income-btn" class="secondary-btn">Adicionar Ganho</button></fieldset>
+                <fieldset><legend>Despesas do Dia</legend><div id="expense-entries"></div><button type="button" id="add-expense-btn" class="secondary-btn">Adicionar Despesa</button></fieldset>
+                <button type="submit" class="primary-btn submit-btn">Salvar Dia</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" title="Fechar" aria-label="Fechar Janela">&times;</button>
+            <h2>Configurações</h2>
+            <nav class="settings-nav">
+                <button class="settings-tab active" data-tab="general" role="tab" aria-selected="true">Geral</button>
+                <button class="settings-tab" data-tab="fixed-expenses" role="tab" aria-selected="false">Despesas Fixas</button>
+                <button class="settings-tab" data-tab="maintenance" role="tab" aria-selected="false">Manutenção</button>
+                <button class="settings-tab" data-tab="categories" role="tab" aria-selected="false">Categorias</button>
+            </nav>
+            <div id="tab-general" class="settings-tab-content active" role="tabpanel">
+                <h3>Meta Financeira Mensal</h3>
+                <div class="form-group"><label for="monthly-goal">Defina sua meta de lucro (R$):</label><input type="number" id="monthly-goal" placeholder="Ex: 4000" min="0"></div>
+            </div>
+            <div id="tab-fixed-expenses" class="settings-tab-content" role="tabpanel">
+                <h3>Despesas Fixas Mensais</h3>
+                <p class="text-secondary-small">Cadastre despesas que se repetem todo mês (seguro, financiamento, etc.).</p>
+                <div id="fixed-expense-list"></div>
+                <form id="fixed-expense-form" class="maintenance-form"><input type="text" id="fixed-expense-name" placeholder="Descrição (Ex: Seguro da Moto)" required><input type="number" step="0.01" id="fixed-expense-amount" placeholder="Valor Mensal (R$)" min="0" required><button type="submit" class="secondary-btn">Adicionar</button></form>
+            </div>
+            <div id="tab-maintenance" class="settings-tab-content" role="tabpanel">
+                <h3>Plano de Manutenção da Moto</h3>
+                <div id="maintenance-plan-list"></div>
+                <form id="maintenance-form" class="maintenance-form"><input type="text" id="maintenance-name" placeholder="Nome (Ex: Troca de Óleo)" required><input type="number" id="maintenance-last-km" placeholder="KM da Última Vez" min="0" required><input type="number" id="maintenance-interval" placeholder="Intervalo (em KM)" min="1" required><button type="submit" class="secondary-btn">Adicionar</button></form>
+            </div>
+            <div id="tab-categories" class="settings-tab-content" role="tabpanel">
+                 <h3>Gerenciar Categorias</h3>
+                <div class="category-manager"><div class="category-column"><h4>Fontes de Renda</h4><ul id="income-category-list" class="category-list"></ul></div><div class="category-column"><h4>Tipos de Despesa</h4><ul id="expense-category-list" class="category-list"></ul></div></div>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>
