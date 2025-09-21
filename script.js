@@ -1,5 +1,5 @@
 /**
- * MotoCash App v3.4 (Correção Final de Inicialização)
+ * MotoCash App v3.5 (Correção Final de Referência de DOM)
  * Aplicação offline-first completa com planejamento, personalização e relatórios.
  */
 document.addEventListener('DOMContentLoaded', () => {
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const view = {
             applyTheme: () => { document.body.className = state.settings.theme; DOMElements.themeToggleBtn.textContent = state.settings.theme === 'theme-dark' ? '☀️' : '🌙'; }
         };
-
+        
         const render = {
             all: () => { state.derivedMetrics.consumption = logic.calculateConsumption(); render.dashboard(); render.history(); if (DOMElements.reportsView.style.display === 'block') render.reports(); },
             dashboard: () => {
@@ -144,10 +144,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     DOMElements.dayForm.reset(); DOMElements.incomeEntries.innerHTML = ''; DOMElements.expenseEntries.innerHTML = '';
                     const record = context;
                     if (record) {
-                        DOMElements.modalTitle.textContent = 'Editar Registro'; DOMElements.recordIdInput.value = record.id; DOMElements.date.value = record.date; DOMElements.kmInitial.value = record.kmInitial; DOMElements.kmFinal.value = record.kmFinal; DOMElements.timeStart.value = record.timeStart || ''; DOMElements.timeEnd.value = record.timeEnd || '';
+                        DOMElements.modalTitle.textContent = 'Editar Registro'; DOMElements.recordId.value = record.id; DOMElements.date.value = record.date; DOMElements.kmInitial.value = record.kmInitial; DOMElements.kmFinal.value = record.kmFinal; DOMElements.timeStart.value = record.timeStart || ''; DOMElements.timeEnd.value = record.timeEnd || '';
                         record.incomes.forEach(inc => modals.addDynamicEntry('income', inc)); record.expenses.forEach(exp => modals.addDynamicEntry('expense', exp));
                     } else {
-                        DOMElements.modalTitle.textContent = 'Registrar Novo Dia'; DOMElements.recordIdInput.value = ''; DOMElements.date.value = new Date().toISOString().split('T')[0];
+                        DOMElements.modalTitle.textContent = 'Registrar Novo Dia'; DOMElements.recordId.value = ''; DOMElements.date.value = new Date().toISOString().split('T')[0];
                         if (state.records.length > 0) { const lastRecord = [...state.records].sort((a, b) => new Date(b.date) - new Date(a.date))[0]; DOMElements.kmInitial.value = lastRecord.kmFinal; }
                         modals.addDynamicEntry('income'); modals.addDynamicEntry('expense');
                     }
@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const kmInitial = parseFloat(DOMElements.kmInitial.value) || 0; const kmFinal = parseFloat(DOMElements.kmFinal.value) || 0;
                 if (kmFinal <= kmInitial) { alert('O KM final deve ser maior que o KM inicial.'); return; }
-                const id = DOMElements.recordIdInput.value ? parseInt(DOMElements.recordIdInput.value) : Date.now();
+                const id = DOMElements.recordId.value ? parseInt(DOMElements.recordId.value) : Date.now();
                 const incomes = Array.from(DOMElements.incomeEntries.querySelectorAll('.dynamic-entry')).map(div => ({ category: div.querySelector('select').value, amount: parseFloat(div.querySelector('.amount')?.value) || 0 })).filter(item => item.amount > 0);
                 const expenses = Array.from(DOMElements.expenseEntries.querySelectorAll('.dynamic-entry')).map(div => {
                     const category = div.querySelector('select').value;
@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return { category, amount: parseFloat(div.querySelector('.amount')?.value) || 0 };
                 }).filter(item => item.amount > 0);
                 const record = { id, date: DOMElements.date.value, kmInitial, kmFinal, timeStart: DOMElements.timeStart.value, timeEnd: DOMElements.timeEnd.value, incomes, expenses, totalIncome: incomes.reduce((sum, item) => sum + item.amount, 0), totalExpense: expenses.reduce((sum, item) => sum + item.amount, 0) };
-                if (DOMElements.recordIdInput.value) { state.records = state.records.map(rec => rec.id === id ? record : rec); } else { state.records.push(record); }
+                if (DOMElements.recordId.value) { state.records = state.records.map(rec => rec.id === id ? record : rec); } else { state.records.push(record); }
                 storage.saveAll(); render.all(); modals.close(DOMElements.dayModal);
             },
             handleHistoryClick: e => { const item = e.target.closest('.history-item'); if (item) { const record = state.records.find(rec => rec.id === parseInt(item.dataset.id)); if (record) modals.open(DOMElements.dayModal, record); } },
