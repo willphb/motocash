@@ -1,16 +1,11 @@
 /**
- * MotoCash App v3.5 (Correção Final de Referência de DOM)
+ * MotoCash App v3.6 (Correção Final de Relatórios e Referências)
  * Aplicação offline-first completa com planejamento, personalização e relatórios.
  */
 document.addEventListener('DOMContentLoaded', () => {
     const App = (() => {
         // --- 1. ESTADO DA APLICAÇÃO ---
-        const state = {
-            records: [],
-            categories: { income: [], expense: [] },
-            settings: { monthlyGoal: 0, maintenancePlan: [], fixedExpenses: [], theme: 'theme-dark' },
-            derivedMetrics: { consumption: {} }
-        };
+        const state = { records: [], categories: { income: [], expense: [] }, settings: { monthlyGoal: 0, maintenancePlan: [], fixedExpenses: [], theme: 'theme-dark' }, derivedMetrics: { consumption: {} } };
 
         // --- 2. CONSTANTES E SELETORES DE DOM ---
         const KEYS = { RECORDS: 'motoCashRecords', CATEGORIES: 'motoCashCategories', SETTINGS: 'motoCashSettings' };
@@ -95,22 +90,50 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             reports: () => {
                 const populatePeriodSelector = () => {
-                    const currentSelection = DOMElements.reportPeriodSelect.value;
+                    const currentSelection = DOMElements.reportPeriod.value;
                     const periods = new Set(state.records.map(rec => rec.date.substring(0, 7)));
                     const sortedPeriods = Array.from(periods).sort().reverse();
-                    DOMElements.reportPeriodSelect.innerHTML = '<option value="all">Ano Inteiro</option>';
+                    DOMElements.reportPeriod.innerHTML = '<option value="all">Ano Inteiro</option>';
                     sortedPeriods.forEach(period => {
                         const option = document.createElement('option'); option.value = period;
-                        const [year, month] = period.split('-');
                         option.textContent = new Date(period + '-02').toLocaleDateString('pt-BR', {month:'long', year:'numeric'});
-                        DOMElements.reportPeriodSelect.appendChild(option);
+                        DOMElements.reportPeriod.appendChild(option);
                     });
-                    if (Array.from(DOMElements.reportPeriodSelect.options).some(opt => opt.value === currentSelection)) { DOMElements.reportPeriodSelect.value = currentSelection; }
+                    if (Array.from(DOMElements.reportPeriod.options).some(opt => opt.value === currentSelection)) { DOMElements.reportPeriod.value = currentSelection; }
                 };
+                const renderProfitBarChart = (records) => {
+                    DOMElements.profitChartContainer.innerHTML = ''; let data = {};
+                    const period = DOMElements.reportPeriod.value;
+                    if (period === 'all') { data = records.reduce((acc, rec) => { const month = rec.date.substring(0, 7); if (!acc[month]) acc[month] = 0; acc[month] += (rec.totalIncome - rec.totalExpense); return acc; }, {});
+                    } else if (records.length > 0) { data[period] = records.reduce((sum, r) => sum + (r.totalIncome - r.totalExpense), 0); }
+                    const profits = Object.values(data); const maxProfit = profits.length > 0 ? Math.max(0, ...profits) : 0;
+                    Object.entries(data).forEach(([month, profit]) => {
+                        const wrapper = document.createElement('div'); wrapper.className = 'bar-wrapper'; const bar = document.createElement('div'); bar.className = 'bar'; bar.style.height = maxProfit > 0 ? `${(profit / maxProfit) * 100}%` : '0%'; const value = document.createElement('div'); value.className = 'bar-value'; value.textContent = logic.formatCurrency(profit); const label = document.createElement('div'); label.className = 'bar-label'; const [year, m] = month.split('-'); label.textContent = `${m}/${year.slice(2)}`;
+                        wrapper.append(value, bar, label); DOMElements.profitChartContainer.appendChild(wrapper);
+                    });
+                };
+                const renderDistributionPieChart = (type, records, chartEl, legendEl) => {
+                    const aggregation = records.flatMap(rec => rec[type === 'income' ? 'incomes' : 'expenses']).reduce((acc, item) => { if (!acc[item.category]) acc[item.category] = 0; acc[item.category] += item.amount; return acc; }, {});
+                    const sortedData = Object.entries(aggregation).sort(([,a],[,b]) => b - a);
+                    const total = sortedData.reduce((sum, [, amount]) => sum + amount, 0);
+                    legendEl.innerHTML = ''; let gradientString = 'conic-gradient('; let currentPercentage = 0;
+                    sortedData.forEach(([category, amount], index) => {
+                        const percentage = (amount / total) * 100; const color = COLORS.CHART[index % COLORS.CHART.length];
+                        gradientString += `${color} ${currentPercentage}% ${currentPercentage + percentage}%, `; currentPercentage += percentage;
+                        const legendItem = document.createElement('div'); legendItem.className = 'legend-item'; legendItem.innerHTML = `<span class="legend-color" style="background-color: ${color}"></span> ${category} (${percentage.toFixed(1)}%)`;
+                        legendEl.appendChild(legendItem);
+                    });
+                    if (total === 0) { chartEl.style.background = 'var(--border-color)'; legendEl.innerHTML = '<p style="font-size: 0.9em; color: var(--text-secondary);">Sem dados no período.</p>';
+                    } else { chartEl.style.background = gradientString.slice(0, -2) + ')'; }
+                };
+
                 populatePeriodSelector();
-                const period = DOMElements.reportPeriodSelect.value;
-                const recordsForReport = state.records.filter(r => period === 'all' || r.date.startsWith(period));
+                const periodValue = DOMElements.reportPeriod.value;
+                const recordsForReport = state.records.filter(r => periodValue === 'all' || r.date.startsWith(periodValue));
                 DOMElements.exportPdfBtn.disabled = recordsForReport.length === 0;
+                renderProfitBarChart(recordsForReport);
+                renderDistributionPieChart('income', recordsForReport, DOMElements.incomePieChart, DOMElements.incomeLegend);
+                renderDistributionPieChart('expense', recordsForReport, DOMElements.expensePieChart, DOMElements.expenseLegend);
             },
             categoryManager: () => {
                 DOMElements.incomeCategoryList.innerHTML = ''; DOMElements.expenseCategoryList.innerHTML = '';
@@ -287,8 +310,8 @@ document.addEventListener('DOMContentLoaded', () => {
             handlePdfExport: () => {
                 const { jsPDF } = window.jspdf; if(!jsPDF || !jsPDF.API.autoTable) { alert("Erro ao carregar a biblioteca de PDF. Verifique a conexão com a internet."); return; }
                 const doc = new jsPDF();
-                const period = DOMElements.reportPeriodSelect.value;
-                const periodText = DOMElements.reportPeriodSelect.options[DOMElements.reportPeriodSelect.selectedIndex].text;
+                const period = DOMElements.reportPeriod.value;
+                const periodText = DOMElements.reportPeriod.options[DOMElements.reportPeriod.selectedIndex].text;
                 const recordsToExport = state.records.filter(r => period === 'all' || r.date.startsWith(period));
                 if (recordsToExport.length === 0) { alert("Não há dados no período selecionado para exportar."); return; }
                 doc.setFontSize(18); doc.text("Relatório Financeiro - MotoCash", 14, 22);
@@ -304,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // --- FUNÇÕES DE INICIALIZAÇÃO ---
+        // --- INICIALIZAÇÃO E FUNÇÕES GLOBAIS ---
         function cacheDOMElements() {
             const toCamelCase = s => s.replace(/-./g, x => x[1].toUpperCase());
             const ids = ['main-dashboard', 'add-day-btn', 'export-btn', 'import-file', 'settings-btn', 'day-modal', 'settings-modal', 'day-form', 'modal-title', 'record-id', 'history-list', 'history-view', 'reports-view', 'show-history-btn', 'show-reports-btn', 'report-period', 'profit-chart-container', 'income-pie-chart', 'income-legend', 'expense-pie-chart', 'expense-legend', 'monthly-goal', 'maintenance-form', 'maintenance-plan-list', 'date', 'time-start', 'time-end', 'km-initial', 'km-final', 'income-entries', 'add-income-btn', 'expense-entries', 'add-expense-btn', 'income-category-list', 'expense-category-list', 'theme-toggle-btn', 'fixed-expense-list', 'fixed-expense-form', 'export-pdf-btn', 'loader-overlay', 'loader-message'];
@@ -328,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
             DOMElements.maintenanceForm.addEventListener('submit', handlers.handleMaintenanceFormSubmit);
             DOMElements.showHistoryBtn.addEventListener('click', () => handlers.switchView('history'));
             DOMElements.showReportsBtn.addEventListener('click', () => handlers.switchView('reports'));
-            DOMElements.reportPeriodSelect.addEventListener('change', render.reports);
+            DOMElements.reportPeriod.addEventListener('change', render.reports);
             DOMElements.themeToggleBtn.addEventListener('click', handlers.handleThemeToggle);
             DOMElements.fixedExpenseForm.addEventListener('submit', handlers.handleFixedExpenseSubmit);
             DOMElements.exportPdfBtn.addEventListener('click', handlers.handlePdfExport);
