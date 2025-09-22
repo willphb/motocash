@@ -3,9 +3,8 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbxC_a6qHSTACMgP2dx35RAfonRZ2L-fBscMgOOlSkdAGx4U09FzHFlgmxfYcryknfMc/exec';
 // ##################################################################
 
-
 /**
- * MotoCash App vFinal (Completo e Revisado)
+ * MotoCash App v4.3 (Correção Final de Renderização)
  * Aplicação online, multi-dispositivo com backend via Google Apps Script.
  */
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // --- 2. CONSTANTES E SELETORES DE DOM ---
-        const KEYS = { RECORDS: 'motoCashRecords', CATEGORIES: 'motoCashCategories', SETTINGS: 'motoCashSettings' };
+         const KEYS = { RECORDS: 'motoCashRecords', CATEGORIES: 'motoCashCategories', SETTINGS: 'motoCashSettings' };
         const COLORS = { CHART: ['#03dac6', '#bb86fc', '#f9a825', '#ff7043', '#29b6f6', '#ef5350'], STATUS: { OK: 'var(--success-color)', WARN: 'var(--warning-color)', DANGER: 'var(--error-color)' } };
         const DOMElements = {};
 
@@ -80,7 +79,14 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         const render = {
-            all: () => { state.derivedMetrics = logic.calculateConsumption(); render.dashboard(); render.history(); if (DOMElements.reportsView && DOMElements.reportsView.style.display === 'block') render.reports(); },
+            all: () => { 
+                state.derivedMetrics.consumption = logic.calculateConsumption(); 
+                render.dashboard(); 
+                render.history(); 
+                if (DOMElements.reportsView && DOMElements.reportsView.style.display === 'block') {
+                    render.reports();
+                }
+            },
             dashboard: () => {
                 const today = new Date(); const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
                 const currentMonthRecords = state.records.filter(r => r.date.startsWith(currentMonthStr));
@@ -127,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (upcomingServicesHTML === '') return '';
                 return `<div class="card maintenance-card"><h3>Manutenção Próxima</h3><ul>${upcomingServicesHTML}</ul></div>`;
             },
-            reports: () => {
+          reports: () => {
                 const populatePeriodSelector = () => {
                     const currentSelection = DOMElements.reportPeriod.value;
                     const periods = new Set(state.records.map(rec => rec.date.substring(0, 7)));
@@ -367,13 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // --- FUNÇÕES DE INICIALIZAÇÃO ---
-        function cacheDOMElements() {
-            const toCamelCase = s => s.replace(/-./g, x => x[1].toUpperCase());
-            const ids = ['main-dashboard', 'add-day-btn', 'export-btn', 'import-file', 'settings-btn', 'day-modal', 'settings-modal', 'day-form', 'modal-title', 'record-id', 'history-list', 'history-view', 'reports-view', 'show-history-btn', 'show-reports-btn', 'report-period', 'profit-chart-container', 'income-pie-chart', 'income-legend', 'expense-pie-chart', 'expense-legend', 'monthly-goal', 'maintenance-form', 'maintenance-plan-list', 'date', 'time-start', 'time-end', 'km-initial', 'km-final', 'income-entries', 'add-income-btn', 'expense-entries', 'add-expense-btn', 'income-category-list', 'expense-category-list', 'theme-toggle-btn', 'fixed-expense-list', 'fixed-expense-form', 'export-pdf-btn', 'loader-overlay', 'loader-message'];
-            ids.forEach(id => { DOMElements[toCamelCase(id)] = document.getElementById(id); });
-        }
-
         function bindEvents() {
             DOMElements.addDayBtn.addEventListener('click', () => modals.open(DOMElements.dayModal));
             DOMElements.settingsBtn.addEventListener('click', () => modals.open(DOMElements.settingsModal));
@@ -406,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.settings = mergedSettings;
             } else {
                 DOMElements.mainDashboard.innerHTML = `<div class="card"><h3 style="color: var(--error-color);">Falha ao Carregar Dados</h3><p style="font-size: 1rem; color: var(--text-secondary);">Verifique sua conexão ou a URL da API no script.</p></div>`;
-                return;
+                return; 
             }
             view.applyTheme();
             bindEvents();
