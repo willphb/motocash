@@ -5,7 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // ##################################################################
     // ## COLE A URL DA SUA API DO GOOGLE APPS SCRIPT AQUI DENTRO DAS ASPAS ##
-    const API_URL = 'COLE_A_URL_DO_SEU_APLICATIVO_DA_WEB_AQUI';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxC_a6qHSTACMgP2dx35RAfonRZ2L-fBscMgOOlSkdAGx4U09FzHFlgmxfYcryknfMc/exec';
     // ##################################################################
 
     const App = (() => {
@@ -250,3 +250,4 @@ document.addEventListener('DOMContentLoaded', () => {
         init();
     })();
 });
+
