@@ -63,16 +63,109 @@ header .container { display: flex; justify-content: space-between; align-items: 
 .report-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
 
 /* --- Botões --- */
-.primary-btn { background-color: var(--primary-color); color: #000; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: 700; text-transform: uppercase; transition: background-color 0.3s; white-space: nowrap; }
-.primary-btn:hover { background-color: #33ffe0; }
-.secondary-btn { background: none; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 8px 15px; border-radius: 5px; cursor: pointer; transition: background-color 0.3s, color 0.3s; margin-top: 10px; }
-.secondary-btn:hover { background-color: rgba(3, 218, 198, 0.1); }
-.secondary-btn-header { background: none; border: 1px solid var(--primary-variant-color); color: var(--primary-color); padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 0.9em; transition: background-color 0.3s, color 0.3s; }
-.secondary-btn-header:hover { background-color: rgba(3, 218, 198, 0.1); }
-.secondary-btn-header:disabled { opacity: 0.5; cursor: not-allowed; border-color: var(--text-secondary); color: var(--text-secondary); }
-.icon-btn { background: none; border: none; color: var(--text-secondary); font-size: 1.8em; cursor: pointer; padding: 0 5px; transition: color 0.3s; line-height: 1; }
-.icon-btn:hover { color: var(--primary-color); }
 
+.primary-btn {
+    background-color: var(--primary-color);
+    color: #000;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: background-color 0.3s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.primary-btn:hover {
+    background-color: #33ffe0;
+}
+.primary-btn .icon-btn-text {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.5;
+}
+
+.secondary-btn {
+    background: none;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    margin-top: 10px;
+}
+.secondary-btn:hover {
+    background-color: rgba(3, 218, 198, 0.1);
+}
+
+.secondary-btn-header {
+    /* Estilos base */
+    background: none;
+    border: 1px solid var(--primary-variant-color);
+    color: var(--primary-color);
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.3s, color 0.3s;
+
+    /* Propriedades para alinhamento perfeito */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    line-height: 1;
+}
+.secondary-btn-header:hover {
+    background-color: rgba(3, 218, 198, 0.1);
+}
+.secondary-btn-header:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.8em;
+    cursor: pointer;
+    padding: 0 5px;
+    transition: color 0.3s;
+    line-height: 1;
+}
+.icon-btn:hover {
+    color: var(--primary-color);
+}
+
+.remove-btn {
+    background: var(--error-color);
+    color: #000;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    align-self: flex-end;
+    margin-bottom: 10px;
+    line-height: 25px;
+    text-align: center;
+    flex-shrink: 0; /* Impede que o botão encolha */
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 15px;
+    margin-top: 10px;
+}
 /* --- Navegação e Abas --- */
 .view-switcher { display: flex; gap: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; transition: border-bottom-color 0.3s; }
 .view-btn { background: none; border: none; color: var(--text-secondary); padding: 10px 15px; cursor: pointer; font-size: 1.1em; border-bottom: 3px solid transparent; transition: color 0.3s, border-bottom-color 0.3s; }
@@ -224,3 +317,4 @@ form legend { padding: 0 10px; font-weight: 500; color: var(--secondary-color); 
         flex-wrap: wrap;
     }
 }
+
