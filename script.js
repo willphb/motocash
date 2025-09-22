@@ -4,7 +4,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxC_a6qHSTACMgP2dx35RAf
 // ##################################################################
 
 /**
- * MotoCash App v4.4 (Correção Final de Navegação)
+ * MotoCash App v4.3 (Correção Final de Renderização)
  * Aplicação online, multi-dispositivo com backend via Google Apps Script.
  */
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,9 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // --- 2. CONSTANTES E SELETORES DE DOM ---
-        const DOMElements = {};
-        const KEYS = { RECORDS: 'motoCashRecords', CATEGORIES: 'motoCashCategories', SETTINGS: 'motoCashSettings' };
+         const KEYS = { RECORDS: 'motoCashRecords', CATEGORIES: 'motoCashCategories', SETTINGS: 'motoCashSettings' };
         const COLORS = { CHART: ['#03dac6', '#bb86fc', '#f9a825', '#ff7043', '#29b6f6', '#ef5350'], STATUS: { OK: 'var(--success-color)', WARN: 'var(--warning-color)', DANGER: 'var(--error-color)' } };
+        const DOMElements = {};
 
         // --- 3. MÓDULOS (DEFINIDOS ANTES DO USO) ---
         const uiFeedback = {
@@ -79,7 +79,14 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         const render = {
-            all: () => { state.derivedMetrics = logic.calculateConsumption(); render.dashboard(); render.history(); if (DOMElements.reportsView && DOMElements.reportsView.style.display === 'block') render.reports(); },
+            all: () => { 
+                state.derivedMetrics.consumption = logic.calculateConsumption(); 
+                render.dashboard(); 
+                render.history(); 
+                if (DOMElements.reportsView && DOMElements.reportsView.style.display === 'block') {
+                    render.reports();
+                }
+            },
             dashboard: () => {
                 const today = new Date(); const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
                 const currentMonthRecords = state.records.filter(r => r.date.startsWith(currentMonthStr));
@@ -118,8 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.settings.maintenancePlan.sort((a,b) => (a.lastKm + a.interval) - (b.lastKm + b.interval)).forEach(item => {
                     const progress = ((lastKm - item.lastKm) / item.interval) * 100;
                     if (progress >= 80 && progress < 150) {
-                        let color = COLORS.STATUS.OK;
-                        if (progress >= 100) color = COLORS.STATUS.DANGER; else if (progress >= 90) color = COLORS.STATUS.WARN;
+                        let color = 'var(--success-color)';
+                        if (progress >= 100) color = 'var(--error-color)'; else if (progress >= 90) color = 'var(--warning-color)';
                         upcomingServicesHTML += `<li class="maintenance-item"><div class="maintenance-name">${item.name}</div><div class="maintenance-progress-bar"><div style="width: ${Math.min(progress, 100)}%; background-color: ${color};"></div></div><div class="maintenance-due">${(item.lastKm + item.interval - lastKm) > 0 ? `Faltam ${Math.round(item.lastKm + item.interval - lastKm)} km` : 'Manutenção vencida!'}</div></li>`;
                     }
                 });
@@ -415,3 +422,4 @@ document.addEventListener('DOMContentLoaded', () => {
         init();
     })();
 });
+
