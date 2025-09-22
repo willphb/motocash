@@ -4,7 +4,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxC_a6qHSTACMgP2dx35RAf
 // ##################################################################
 
 /**
- * MotoCash App v4.3 (Correção Final de Renderização)
+ * MotoCash App v4.5 (Correção de Carregamento de Dados)
  * Aplicação online, multi-dispositivo com backend via Google Apps Script.
  */
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,15 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- 1. ESTADO DA APLICAÇÃO ---
         const state = {
             records: [],
-            categories: { income: [], expense: [] },
+            categories: { income: ['Uber', 'iFood', 'Particular'], expense: ['Combustível', 'Manutenção', 'Alimentação'] },
             settings: { monthlyGoal: 0, maintenancePlan: [], fixedExpenses: [], theme: 'theme-dark' },
             derivedMetrics: { consumption: {} }
         };
 
         // --- 2. CONSTANTES E SELETORES DE DOM ---
-         const KEYS = { RECORDS: 'motoCashRecords', CATEGORIES: 'motoCashCategories', SETTINGS: 'motoCashSettings' };
-        const COLORS = { CHART: ['#03dac6', '#bb86fc', '#f9a825', '#ff7043', '#29b6f6', '#ef5350'], STATUS: { OK: 'var(--success-color)', WARN: 'var(--warning-color)', DANGER: 'var(--error-color)' } };
         const DOMElements = {};
+        const KEYS = { RECORDS: 'motoCashRecords', CATEGORIES: 'motoCashCategories', SETTINGS: 'motoCashSettings' };
+        const COLORS = { CHART: ['#03dac6', '#bb86fc', '#f9a825', '#ff7043', '#29b6f6', '#ef5350'], STATUS: { OK: 'var(--success-color)', WARN: 'var(--warning-color)', DANGER: 'var(--error-color)' } };
 
         // --- 3. MÓDULOS (DEFINIDOS ANTES DO USO) ---
         const uiFeedback = {
@@ -79,14 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         const render = {
-            all: () => { 
-                state.derivedMetrics.consumption = logic.calculateConsumption(); 
-                render.dashboard(); 
-                render.history(); 
-                if (DOMElements.reportsView && DOMElements.reportsView.style.display === 'block') {
-                    render.reports();
-                }
-            },
+            all: () => { state.derivedMetrics = logic.calculateConsumption(); render.dashboard(); render.history(); if (DOMElements.reportsView && DOMElements.reportsView.style.display === 'block') render.reports(); },
             dashboard: () => {
                 const today = new Date(); const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
                 const currentMonthRecords = state.records.filter(r => r.date.startsWith(currentMonthStr));
@@ -287,7 +280,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         const data = JSON.parse(ev.target.result);
                         if (data.records && data.categories && data.settings) {
                             if (confirm('Atenção: Isso substituirá todos os dados na nuvem. Deseja continuar?')) {
-                                Object.assign(state, data);
+                                state.records = data.records;
+                                state.categories = data.categories;
+                                state.settings = data.settings;
                                 await api.saveAll();
                                 view.applyTheme(); render.all();
                                 alert('Dados importados e salvos na nuvem com sucesso!');
@@ -407,19 +402,19 @@ document.addEventListener('DOMContentLoaded', () => {
             cacheDOMElements();
             const loadedState = await api.loadState();
             if (loadedState) {
-                const mergedSettings = { ...state.settings, ...loadedState.settings };
-                Object.assign(state, loadedState);
-                state.settings = mergedSettings;
+                const defaultState = { records: [], categories: { income: ['Uber', 'iFood', 'Particular'], expense: ['Combustível', 'Manutenção', 'Alimentação'] }, settings: { monthlyGoal: 0, maintenancePlan: [], fixedExpenses: [], theme: 'theme-dark' } };
+                state.records = loadedState.records || defaultState.records;
+                state.categories = loadedState.categories && loadedState.categories.income.length > 0 ? loadedState.categories : defaultState.categories;
+                state.settings = { ...defaultState.settings, ...loadedState.settings };
             } else {
                 DOMElements.mainDashboard.innerHTML = `<div class="card"><h3 style="color: var(--error-color);">Falha ao Carregar Dados</h3><p style="font-size: 1rem; color: var(--text-secondary);">Verifique sua conexão ou a URL da API no script.</p></div>`;
-                return;
             }
             view.applyTheme();
             bindEvents();
             render.all();
         }
 
+        // --- EXECUÇÃO ---
         init();
     })();
 });
-
