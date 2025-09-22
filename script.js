@@ -5,7 +5,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxC_a6qHSTACMgP2dx35RAf
 
 
 /**
- * MotoCash App v4.2 (Versão Estável Online)
+ * MotoCash App vFinal (Completo e Revisado)
  * Aplicação online, multi-dispositivo com backend via Google Apps Script.
  */
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // --- 2. CONSTANTES E SELETORES DE DOM ---
+        const KEYS = { RECORDS: 'motoCashRecords', CATEGORIES: 'motoCashCategories', SETTINGS: 'motoCashSettings' };
+        const COLORS = { CHART: ['#03dac6', '#bb86fc', '#f9a825', '#ff7043', '#29b6f6', '#ef5350'], STATUS: { OK: 'var(--success-color)', WARN: 'var(--warning-color)', DANGER: 'var(--error-color)' } };
         const DOMElements = {};
 
         // --- 3. MÓDULOS (DEFINIDOS ANTES DO USO) ---
@@ -243,12 +245,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         inputsWrapper.innerHTML = `<div class="form-group"><input type="number" step="0.01" min="0" placeholder="Valor (R$)" class="amount" value="${entry.amount || ''}"></div>`;
                     }
                 };
-                select.addEventListener('change', () => {
+                select.addEventListener('change', async () => {
                     if (select.value === 'new') {
                         const newCategory = prompt(`Nome da nova categoria de ${type === 'income' ? 'ganho' : 'despesa'}:`);
                         if (newCategory && newCategory.trim() && !state.categories[type].includes(newCategory.trim())) {
                             const trimmedCategory = newCategory.trim();
-                            state.categories[type].push(trimmedCategory); handlers.handleGenericSave();
+                            state.categories[type].push(trimmedCategory); await api.saveAll();
                             const newOpt = document.createElement('option'); newOpt.value = trimmedCategory; newOpt.textContent = trimmedCategory;
                             select.insertBefore(newOpt, select.querySelector('option[value="new"]')); select.value = trimmedCategory;
                         } else { select.value = entry.category || state.categories[type][0]; }
@@ -362,8 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tableRows = recordsToExport.sort((a,b) => new Date(a.date) - new Date(b.date)).map(rec => [ new Date(rec.date).toLocaleDateString('pt-BR', {timeZone: 'UTC'}), logic.formatCurrency(rec.totalIncome), logic.formatCurrency(rec.totalExpense), logic.formatCurrency(rec.totalIncome - rec.totalExpense), rec.kmFinal - rec.kmInitial ]);
                 doc.autoTable({ head: [tableColumn], body: tableRows, startY: 70 });
                 doc.save(`relatorio-motocash-${period}.pdf`);
-            },
-            handleGenericSave: async () => { await api.saveAll(); }
+            }
         };
 
         // --- FUNÇÕES DE INICIALIZAÇÃO ---
