@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MotoCash - Seu Diário de Bordo Financeiro</title>
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-<link rel="manifest" href="site.webmanifest">
-<meta name="theme-color" content="#121212">
+    <title>MotoCash 🏍️ - Seu Diário de Bordo Financeiro</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="theme-color" content="#121212">
+
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 
@@ -18,12 +20,7 @@
 </head>
 
 <body class="theme-dark">
-<div id="loader-overlay" class="loader-overlay" style="display: none;">
-    <div class="loader-content">
-        <div class="loader-spinner"></div>
-        <p id="loader-message">Carregando...</p>
-    </div>
-</div>
+
     <div id="loader-overlay" class="loader-overlay" style="display: none;">
         <div class="loader-content">
             <div class="loader-spinner"></div>
@@ -33,14 +30,17 @@
 
     <header>
         <div class="container">
-            <h1>MotoCash 🏍️</h1>
+            <h1>MotoCash</h1>
             <div class="header-actions">
                 <button id="theme-toggle-btn" class="icon-btn" title="Alternar Tema" aria-label="Alternar Tema">☀️</button>
                 <button id="export-btn" class="secondary-btn-header" title="Exportar Backup">📥 Exportar</button>
                 <label for="import-file" class="secondary-btn-header" title="Importar Backup">📤 Importar</label>
                 <input type="file" id="import-file" accept=".json" style="display: none;">
                 <button id="settings-btn" class="icon-btn" title="Configurações" aria-label="Abrir Configurações">⚙️</button>
-                <button id="add-day-btn" class="primary-btn">➕ Novo Dia</button>
+                <button id="add-day-btn" class="primary-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-btn-text"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+                    <span>Novo Dia</span>
+                </button>
             </div>
         </div>
     </header>
@@ -92,7 +92,11 @@
                 <fieldset><legend>Quilometragem</legend><div class="form-group-inline"><div class="form-group"><label for="km-initial">KM Inicial</label><input type="number" id="km-initial" min="0" required></div><div class="form-group"><label for="km-final">KM Final</label><input type="number" id="km-final" min="0" required></div></div></fieldset>
                 <fieldset><legend>Ganhos do Dia</legend><div id="income-entries"></div><button type="button" id="add-income-btn" class="secondary-btn">Adicionar Ganho</button></fieldset>
                 <fieldset><legend>Despesas do Dia</legend><div id="expense-entries"></div><button type="button" id="add-expense-btn" class="secondary-btn">Adicionar Despesa</button></fieldset>
-                <button type="submit" class="primary-btn submit-btn">Salvar Dia</button>
+                
+                <div class="form-actions">
+                    <button type="button" id="delete-record-btn" class="delete-btn">Excluir Registro</button>
+                    <button type="submit" class="primary-btn submit-btn">Salvar</button>
+                </div>
             </form>
         </div>
     </div>
@@ -130,10 +134,4 @@
     </div>
     
 </body>
-
 </html>
-
-
-
-
-
