@@ -395,6 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
             DOMElements.themeToggleBtn.addEventListener('click', handlers.handleThemeToggle);
             DOMElements.fixedExpenseForm.addEventListener('submit', handlers.handleFixedExpenseSubmit);
             DOMElements.exportPdfBtn.addEventListener('click', handlers.handlePdfExport);
+            DOMElements.deleteRecordBtn.addEventListener('click', handlers.handleDeleteRecord);
         }
         
         async function init() {
@@ -417,4 +418,5 @@ document.addEventListener('DOMContentLoaded', () => {
         init();
     })();
 });
+
 
