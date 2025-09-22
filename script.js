@@ -5,7 +5,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxC_a6qHSTACMgP2dx35RAf
 
 
 /**
- * MotoCash App vFinal (Versão Consolidada)
+ * MotoCash App vFinal (Versão Consolidada e Corrigida)
  * Aplicação online, multi-dispositivo com backend via Google Apps Script.
  */
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- 2. CONSTANTES E SELETORES DE DOM ---
         const DOMElements = {};
-        const KEYS = { RECORDS: 'motoCashRecords', CATEGORIES: 'motoCashCategories', SETTINGS: 'motoCashSettings' };
         const COLORS = { CHART: ['#03dac6', '#bb86fc', '#f9a825', '#ff7043', '#29b6f6', '#ef5350'], STATUS: { OK: 'var(--success-color)', WARN: 'var(--warning-color)', DANGER: 'var(--error-color)' } };
 
         // --- 3. MÓDULOS (DEFINIDOS ANTES DO USO) ---
@@ -208,10 +207,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (record) {
                         DOMElements.modalTitle.textContent = 'Editar Registro'; DOMElements.recordId.value = record.id; DOMElements.date.value = record.date; DOMElements.kmInitial.value = record.kmInitial; DOMElements.kmFinal.value = record.kmFinal; DOMElements.timeStart.value = record.timeStart || ''; DOMElements.timeEnd.value = record.timeEnd || '';
                         record.incomes.forEach(inc => modals.addDynamicEntry('income', inc)); record.expenses.forEach(exp => modals.addDynamicEntry('expense', exp));
+                        DOMElements.deleteRecordBtn.style.display = 'block';
                     } else {
                         DOMElements.modalTitle.textContent = 'Registrar Novo Dia'; DOMElements.recordId.value = ''; DOMElements.date.value = new Date().toISOString().split('T')[0];
                         if (state.records.length > 0) { const lastRecord = [...state.records].sort((a, b) => new Date(b.date) - new Date(a.date))[0]; DOMElements.kmInitial.value = lastRecord.kmFinal; }
                         modals.addDynamicEntry('income'); modals.addDynamicEntry('expense');
+                        DOMElements.deleteRecordBtn.style.display = 'none';
                     }
                     setTimeout(() => DOMElements.date.focus(), 100);
                 }
@@ -308,6 +309,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const record = { id, date: DOMElements.date.value, kmInitial, kmFinal, timeStart: DOMElements.timeStart.value, timeEnd: DOMElements.timeEnd.value, incomes, expenses, totalIncome: incomes.reduce((sum, item) => sum + item.amount, 0), totalExpense: expenses.reduce((sum, item) => sum + item.amount, 0) };
                 if (DOMElements.recordId.value) { state.records = state.records.map(rec => rec.id === id ? record : rec); } else { state.records.push(record); }
                 await api.saveAll(); render.all(); modals.close(DOMElements.dayModal);
+            },
+            handleDeleteRecord: async () => {
+                const recordIdToDelete = parseInt(DOMElements.recordId.value);
+                if (!recordIdToDelete) return;
+                if (confirm('Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.')) {
+                    state.records = state.records.filter(rec => rec.id !== recordIdToDelete);
+                    await api.saveAll();
+                    modals.close(DOMElements.dayModal);
+                    render.all();
+                }
             },
             handleHistoryClick: (e) => { const item = e.target.closest('.history-item'); if (item) { const record = state.records.find(rec => rec.id === parseInt(item.dataset.id)); if (record) modals.open(DOMElements.dayModal, record); } },
             handleSettingsClick: async (e) => {
@@ -408,6 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.settings = { ...defaultState.settings, ...loadedState.settings };
             } else {
                 DOMElements.mainDashboard.innerHTML = `<div class="card"><h3 style="color: var(--error-color);">Falha ao Carregar Dados</h3><p style="font-size: 1rem; color: var(--text-secondary);">Verifique sua conexão ou a URL da API no script.</p></div>`;
+                return;
             }
             view.applyTheme();
             bindEvents();
@@ -418,5 +430,3 @@ document.addEventListener('DOMContentLoaded', () => {
         init();
     })();
 });
-
-
