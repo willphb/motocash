@@ -161,4 +161,66 @@ form legend { padding: 0 10px; font-weight: 500; color: var(--secondary-color); 
 .category-actions .delete-cat-btn:hover, .category-actions .delete-fixed-expense-btn:hover, .category-actions .delete-maintenance-btn:hover { color: var(--error-color); }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
 @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* =================================================================== */
+/* --- REGRAS DE RESPONSIVIDADE PARA DISPOSITIVOS MÓVEIS --- */
+/* =================================================================== */
+
+@media (max-width: 768px) {
+
+    /* --- Ajustes Gerais --- */
+    .container {
+        padding: 10px;
+    }
+
+    /* --- Cabeçalho --- */
+    header h1 {
+        font-size: 1.5em; /* Diminui o título 'MotoCash' */
+    }
+    .header-actions {
+        gap: 5px; /* Diminui o espaço entre os botões */
+    }
+    .primary-btn {
+        padding: 8px 10px; /* Botão 'Registrar Dia' menor */
+        font-size: 0.9em;
+    }
+
+    /* --- Painel de Controle (Dashboard) --- */
+    .dashboard {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    .card h3 {
+        font-size: 0.8em;
+    }
+    .card p {
+        font-size: 1.3em;
+    }
+
+    /* --- A SOLUÇÃO PARA A TABELA --- */
+    /* Transforma a lista de histórico em um container com rolagem */
+    #history-list {
+        overflow-x: auto; /* A mágica acontece aqui! */
+        -webkit-overflow-scrolling: touch; /* Melhora a experiência de rolagem no iOS */
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 5px;
+    }
+
+    /* Força a tabela a ter uma largura mínima para não espremer o conteúdo */
+    #history-list table {
+        min-width: 800px; 
+    }
+    
+    /* --- Modais --- */
+    .modal-content {
+        padding: 20px 15px;
+        margin: 10% auto;
+        width: 95%;
+    }
+    .settings-nav {
+        flex-wrap: wrap;
+    }
+}
