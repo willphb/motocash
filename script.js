@@ -3,10 +3,12 @@
  * Aplicação online, multi-dispositivo com backend via Google Apps Script.
  */
 document.addEventListener('DOMContentLoaded', () => {
+
     // ##################################################################
     // ## COLE A URL DA SUA API DO GOOGLE APPS SCRIPT AQUI DENTRO DAS ASPAS ##
     const API_URL = 'https://script.google.com/macros/s/AKfycbxC_a6qHSTACMgP2dx35RAfonRZ2L-fBscMgOOlSkdAGx4U09FzHFlgmxfYcryknfMc/exec';
     // ##################################################################
+
 
     const App = (() => {
         // --- 1. ESTADO DA APLICAÇÃO ---
@@ -23,8 +25,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- 3. MÓDULOS ---
 
         const uiFeedback = {
-            showLoader: (message) => { DOMElements.loaderMessage.textContent = message; DOMElements.loaderOverlay.style.display = 'flex'; },
-            hideLoader: () => { DOMElements.loaderOverlay.style.display = 'none'; }
+            showLoader: (message) => {
+                if (DOMElements.loaderMessage) DOMElements.loaderMessage.textContent = message;
+                if (DOMElements.loaderOverlay) DOMElements.loaderOverlay.style.display = 'flex';
+            },
+            hideLoader: () => {
+                if (DOMElements.loaderOverlay) DOMElements.loaderOverlay.style.display = 'none';
+            }
         };
         
         const api = {
@@ -79,11 +86,15 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const view = {
-            applyTheme: () => { document.body.className = state.settings.theme; DOMElements.themeToggleBtn.textContent = state.settings.theme === 'theme-dark' ? '☀️' : '🌙'; }
+            applyTheme: () => {
+                if(!DOMElements.themeToggleBtn) return;
+                document.body.className = state.settings.theme;
+                DOMElements.themeToggleBtn.textContent = state.settings.theme === 'theme-dark' ? '☀️' : '🌙';
+            }
         };
         
         const render = {
-            all: () => { state.derivedMetrics = logic.calculateConsumption(); render.dashboard(); render.history(); if (DOMElements.reportsView.style.display === 'block') render.reports(); },
+            all: () => { state.derivedMetrics = logic.calculateConsumption(); render.dashboard(); render.history(); if (DOMElements.reportsView && DOMElements.reportsView.style.display === 'block') render.reports(); },
             dashboard: () => {
                 const today = new Date(); const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
                 const currentMonthRecords = state.records.filter(r => r.date.startsWith(currentMonthStr));
@@ -94,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 DOMElements.mainDashboard.innerHTML = `${render.goalCard(netProfit)} <div class="card"><h3>Lucro Líquido (Mês)</h3><p>${logic.formatCurrency(netProfit)}</p></div> <div class="card"><h3>Despesas Fixas</h3><p>${logic.formatCurrency(totalFixedExpenses)}</p></div> <div class="card"><h3>Média R$/h</h3><p>${logic.formatCurrency(avgHourly)}</p></div> <div class="card"><h3>Consumo Médio</h3><p>${state.derivedMetrics.consumption.overallAvgKmL.toFixed(2)} km/L</p></div> ${render.maintenanceCard()}`;
             },
             history: () => {
+                if(!DOMElements.historyList) return;
                 DOMElements.historyList.innerHTML = '';
                 if (state.records.length === 0) { DOMElements.historyList.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Nenhum registro encontrado.</p>'; return; }
                 const sortedRecords = [...state.records].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -115,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `<div class="card goal-card"><h3>Meta do Mês</h3><div class="goal-text">${logic.formatCurrency(netProfit)} / ${logic.formatCurrency(goal)}</div><div class="progress-bar-container"><div class="progress-bar" style="width: ${progress}%;"></div></div></div>`;
             },
             maintenanceCard: () => {
-                if (state.settings.maintenancePlan.length === 0) return '';
+                if (!state.settings.maintenancePlan || state.settings.maintenancePlan.length === 0) return '';
                 const lastKm = state.records.length > 0 ? Math.max(...state.records.map(r => r.kmFinal)) : 0;
                 if (lastKm === 0) return ''; let upcomingServicesHTML = '';
                 state.settings.maintenancePlan.sort((a,b) => (a.lastKm + a.interval) - (b.lastKm + b.interval)).forEach(item => {
@@ -166,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const backup = {
             exportData: () => { /* ... Inalterado ... */ },
-            importData: async (e) => { // Agora é async
+            importData: async (e) => {
                 const file = e.target.files[0]; if (!file) return;
                 const reader = new FileReader();
                 reader.onload = async (ev) => {
@@ -174,8 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         const data = JSON.parse(ev.target.result);
                         if (data.records && data.categories && data.settings) {
                             if (confirm('Atenção: Isso substituirá todos os dados na nuvem. Deseja continuar?')) {
-                                Object.assign(state, data); // Carrega os dados localmente
-                                await api.saveAll(); // Envia os novos dados para a nuvem
+                                Object.assign(state, data);
+                                await api.saveAll();
                                 view.applyTheme(); render.all();
                                 alert('Dados importados e salvos na nuvem com sucesso!');
                             }
@@ -229,25 +241,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 const amount = parseFloat(DOMElements.fixedExpenseForm.querySelector('#fixed-expense-amount').value);
                 if (name.trim() && amount > 0) {
                     state.settings.fixedExpenses.push({ id: Date.now(), name: name.trim(), amount });
-                    await api.saveAll(); DOMElements.fixedExpenseForm.reset(); render.all(); modals.open(DOMElements.settingsModal, 'fixed-expenses');
+                    await api.saveAll();
+                    DOMElements.fixedExpenseForm.reset(); render.all(); modals.open(DOMElements.settingsModal, 'fixed-expenses');
                 } else { alert('Preencha a descrição e o valor da despesa.'); }
             },
-            handleHistoryClick: (e) => { /* ... Inalterado ... */ },
-            switchView: (viewId) => { /* ... Inalterado ... */ },
+            handleHistoryClick: (e) => { const item = e.target.closest('.history-item'); if (item) { const record = state.records.find(rec => rec.id === parseInt(item.dataset.id)); if (record) modals.open(DOMElements.dayModal, record); } },
+            switchView: (viewId) => {
+                DOMElements.historyView.style.display = viewId === 'history' ? 'block' : 'none';
+                DOMElements.reportsView.style.display = viewId === 'reports' ? 'block' : 'none';
+                DOMElements.showHistoryBtn.classList.toggle('active', viewId === 'history');
+                DOMElements.showReportsBtn.classList.toggle('active', viewId === 'reports');
+                if(viewId === 'reports') render.reports();
+            },
             handlePdfExport: () => { /* ... Inalterado ... */ }
         };
         
         async function init() {
             cacheDOMElements();
             const loadedState = await api.loadState();
-            if (loadedState) { Object.assign(state, loadedState); } 
-            else { DOMElements.mainDashboard.innerHTML = `<div class="card"><h3 style="color: var(--error-color);">Falha ao Carregar Dados</h3><p style="font-size: 1rem; color: var(--text-secondary);">Verifique sua conexão ou a URL da API no script.</p></div>`; }
+            if (loadedState) {
+                // Fundir configurações para garantir que novas propriedades sejam adicionadas
+                const mergedSettings = { ...state.settings, ...loadedState.settings };
+                Object.assign(state, loadedState);
+                state.settings = mergedSettings;
+            } else {
+                DOMElements.mainDashboard.innerHTML = `<div class="card"><h3 style="color: var(--error-color);">Falha ao Carregar Dados</h3><p style="font-size: 1rem; color: var(--text-secondary);">Verifique sua conexão ou a URL da API no script.</p></div>`;
+            }
             view.applyTheme();
             bindEvents();
             render.all();
         }
-
+        
         init();
     })();
 });
-
